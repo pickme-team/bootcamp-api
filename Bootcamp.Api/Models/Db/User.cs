@@ -14,4 +14,13 @@ public class User
     public List<string> Skills { get; set; } = [];
     
     public string FullName => $"{FirstName} {LastName}";
+
+    public override string ToString()
+    {
+        return $"""
+                Студент:
+                Имя: {FullName}
+                Навыки: {string.Join(',', Skills)}
+                """;
+    }
 }

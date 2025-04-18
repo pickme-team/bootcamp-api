@@ -30,6 +30,7 @@ builder.Services.AddSingleton<IJwtService, JwtService>();
 builder.Services.AddSingleton<PasswordHasher<string>>();
 builder.Services.AddScoped<IMlService, MlService>();
 builder.Services.AddScoped<IModerationService, ModerationService>();
+builder.Services.AddScoped<IMatchEngineService, MatchEngineService>();
 
 builder.Services.AddExceptionHandler<ExceptionFilter>();
 
@@ -128,7 +129,7 @@ app.MapPut("/users/me/update-skills", async (List<string> skills, BootcampContex
     
     await db.SaveChangesAsync();
     return Results.Ok(new GetUserResponse(user.FirstName, user.LastName, user.Email, user.Skills));
-});
+}).RequireAuthorization();
 #endregion
 
 #region ML Block
@@ -139,8 +140,16 @@ app.MapPost("/generate-text", async (GenerateTextRequest request, IMlService mlS
 app.MapGet("/jobs/{id:Guid}/moderate", async (HttpContext context, IModerationService moderator, Guid id) =>
 {
     var isProfanity = await moderator.Moderate(id);
-    return Results.Ok(new { isProfanity = isProfanity });
+    return Results.Ok(new { isProfanity });
 });
+
+app.MapGet("/users/me/feed", async (IMatchEngineService matchEngine, BootcampContext db, HttpContext context) =>
+{
+    var id = context.User.Id();
+    var user = await db.Users.FindAsync(id);
+    
+    return user == null ? Results.NotFound() : Results.Ok(matchEngine.MatchJobsForUser(user));
+}).RequireAuthorization();
 #endregion
 
 #region Jobs
@@ -162,7 +171,7 @@ app.MapPost("jobs/create", async (CreateJobRequest createJob, BootcampContext db
     await db.Jobs.AddAsync(job);
     await db.SaveChangesAsync();
     
-    return job.Id;
+    return Results.Ok(job.Id);
 });
 
 app.MapGet("jobs/{id:Guid}", async (Guid id, BootcampContext db) =>

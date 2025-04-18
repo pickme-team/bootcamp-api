@@ -27,7 +27,7 @@ public class Job
         return $"""
                Название вакансии: {JobName};
                Описание вакансии: {Description};
-               Требования: {Requirements};
+               Требования: {string.Join(',', Requirements)};
                Тип вакансии: {Enum.Format(typeof(JobType), Type, "g")};
                Оплата: {string.Format(SalaryDescription, Salary)};
                """;
