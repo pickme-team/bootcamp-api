@@ -113,8 +113,22 @@ app.MapGet("/users/me", async (HttpContext context, BootcampContext db) =>
     var id = context.User.Id();
     var user = await db.Users.FirstOrDefaultAsync(u => u.Id == id);
 
-    return user == null ? Results.NotFound() : Results.Ok(new GetUserResponse(user.FirstName, user.LastName, user.Email));
+    return user == null ? Results.NotFound() : Results.Ok(new GetUserResponse(user.FirstName, user.LastName, user.Email, user.Skills));
 }).RequireAuthorization();
+
+app.MapPut("/users/me/update-skills", async (List<string> skills, BootcampContext db, HttpContext context) =>
+{
+    var id = context.User.Id();
+    var user = await db.Users.FindAsync(id);
+    
+    if (user == null)
+        return Results.NotFound();
+    
+    user.Skills = skills;
+    
+    await db.SaveChangesAsync();
+    return Results.Ok(new GetUserResponse(user.FirstName, user.LastName, user.Email, user.Skills));
+});
 #endregion
 
 #region ML Block

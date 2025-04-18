@@ -5,4 +5,4 @@ public record GenerateTextResponse(string text);
 
 public record AuthResponse(string token);
 
-public record GetUserResponse(string firtsName, string lastName, string email);
+public record GetUserResponse(string firtsName, string lastName, string email, List<string> skills);

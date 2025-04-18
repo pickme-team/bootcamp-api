@@ -60,6 +60,17 @@ Authorization: Bearer {{auth_token}}
 
 ###
 
+PUT http://localhost:8080/users/me/update-skills
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+[
+    "Кодер на C# 10000 лет", "Просто сигма", "Прошёл тест на iq меньше чем на 0"
+]
+
+
+###
+
 POST http://localhost:8080/jobs/create
 Content-Type: application/json
 
