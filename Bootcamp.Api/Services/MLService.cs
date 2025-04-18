@@ -23,7 +23,7 @@ public class MlService(IConfiguration config) : IMlService
     {
         CompletionRequest completionRequest = 
             new(ModelUrl,
-                new(false, request.temperature, "2000"), 
+                new(false, request.temperature, "5000"), 
                 [new(Role.User, request.prompt)]);
         
         try

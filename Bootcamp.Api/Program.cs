@@ -148,7 +148,7 @@ app.MapGet("/users/me/feed", async (IMatchEngineService matchEngine, BootcampCon
     var id = context.User.Id();
     var user = await db.Users.FindAsync(id);
     
-    return user == null ? Results.NotFound() : Results.Ok(matchEngine.MatchJobsForUser(user));
+    return user == null ? Results.NotFound() : Results.Ok(await matchEngine.MatchJobsForUser(user));
 }).RequireAuthorization();
 #endregion
 

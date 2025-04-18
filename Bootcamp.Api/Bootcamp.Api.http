@@ -60,12 +60,17 @@ Authorization: Bearer {{auth_token}}
 
 ###
 
+GET http://localhost:8080/users/me/feed
+Authorization: Bearer {{auth_token}}
+
+###
+
 PUT http://localhost:8080/users/me/update-skills
 Content-Type: application/json
 Authorization: Bearer {{auth_token}}
 
 [
-    "Кодер на C# 10000 лет", "Просто сигма", "Прошёл тест на iq меньше чем на 0"
+    "Кодер на C# 10 лет", "Сеньёр девелопер", "3 курс МФТИ"
 ]
 
 
@@ -95,6 +100,61 @@ Content-Type: application/json
         client.global.set("job_id", response.body);
     });
 %}
+
+###
+
+POST http://localhost:8080/jobs/create
+Content-Type: application/json
+
+{
+  "jobName": "Senior Backend Developer",
+  "description": "Разработка высоконагруженных микросервисов на Python",
+  "company": "Tech Innovations Inc.",
+  "requirements": [
+    "Опыт работы с Jango от 5 лет",
+    "Знание Docker",
+    "Опыт работы с базами данных PostgreSQL",
+    "Понимание принципов REST/gRPC"
+  ],
+  "jobType": "Intern",
+  "salary": 250000.50,
+  "salaryDescription": "{0} $ в час"
+}
+
+> {%
+    client.test("Job create successful", function() {
+        client.assert(response.status === 200, "Response status is not 200");
+        client.global.set("job_id2", response.body);
+    });
+%}
+
+###
+
+POST http://localhost:8080/jobs/create
+Content-Type: application/json
+
+{
+  "jobName": "КАЗИНО АЗИНО",
+  "description": "5000 руб бонус за друга на депозит",
+  "company": "UpX",
+  "requirements": [
+    "Подключение к интернету"
+  ],
+  "jobType": "Intern",
+  "salary": 250000.50,
+  "salaryDescription": "{0} $ в час"
+}
+
+> {%
+    client.test("Job create successful", function() {
+        client.assert(response.status === 200, "Response status is not 200");
+        client.global.set("job_id_invalid", response.body);
+    });
+%}
+
+###
+
+GET http://localhost:8080/jobs/{{job_id_invalid}}/moderate
 
 ###
 
