@@ -1,12 +1,14 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using System.Text.Json.Serialization;
 using Bootcamp.Api;
 using Bootcamp.Api.Models.Db;
 using Bootcamp.Api.Models.Requests;
 using Bootcamp.Api.Models.Responses;
 using Bootcamp.Api.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Http.Json;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.EntityFrameworkCore;
@@ -30,6 +32,10 @@ builder.Services.AddScoped<IMlService, MlService>();
 builder.Services.AddScoped<IModerationService, ModerationService>();
 
 builder.Services.AddExceptionHandler<ExceptionFilter>();
+
+builder.Services.Configure<JsonOptions>(options => {
+    options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
+});
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -125,7 +131,55 @@ app.MapGet("/jobs/{id:Guid}/moderate", async (HttpContext context, IModerationSe
 
 #region Jobs
 
-app.MapPost("jobs/create", () => { return Results.Ok(); });
+app.MapPost("jobs/create", async (CreateJobRequest createJob, BootcampContext db) =>
+{
+    var job = new Job()
+    {
+        JobName = createJob.jobName,
+        Description = createJob.description,
+        Company = createJob.company,
+        IsActive = true,
+        Requirements = createJob.requirements,
+        Salary = createJob.salary,
+        SalaryDescription = createJob.salaryDescription,
+        Type = createJob.jobType
+    };
+    
+    await db.Jobs.AddAsync(job);
+    await db.SaveChangesAsync();
+    
+    return job.Id;
+});
+
+app.MapGet("jobs/{id:Guid}", async (Guid id, BootcampContext db) =>
+{
+    var job = await db.Jobs.FirstOrDefaultAsync(j => j.Id == id);
+    return job == null ? Results.NotFound() : Results.Ok(job);
+});
+
+app.MapPost("jobs/{id:Guid}/active", async (Guid id, BootcampContext db) =>
+{
+    var job = await db.Jobs.FindAsync(id);
+    
+    if (job == null)
+        return Results.NotFound();
+    
+    job.IsActive = true;
+    await db.SaveChangesAsync();
+    return Results.Ok(job);
+});
+
+app.MapPost("jobs/{id:Guid}/disable", async (Guid id, BootcampContext db) =>
+{
+    var job = await db.Jobs.FindAsync(id);
+    
+    if (job == null)
+        return Results.NotFound();
+    
+    job.IsActive = false;
+    await db.SaveChangesAsync();
+    return Results.Ok(job);
+});
 
 #endregion
 

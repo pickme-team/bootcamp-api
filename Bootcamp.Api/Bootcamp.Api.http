@@ -57,3 +57,42 @@ Authorization: Bearer {{auth_token}}
         client.log("User: " + JSON.stringify(response.body));
     });
 %}
+
+###
+
+POST http://localhost:8080/jobs/create
+Content-Type: application/json
+
+{
+  "jobName": "Senior Backend Developer",
+  "description": "Разработка высоконагруженных микросервисов на C#",
+  "company": "Tech Innovations Inc.",
+  "requirements": [
+    "Опыт работы с .NET Core 5+",
+    "Знание Docker и Kubernetes",
+    "Опыт работы с базами данных PostgreSQL",
+    "Понимание принципов REST/gRPC"
+  ],
+  "jobType": "Intern",
+  "salary": 250000.50,
+  "salaryDescription": "{0} $ в час"
+}
+
+> {%
+    client.test("Job create successful", function() {
+        client.assert(response.status === 200, "Response status is not 200");
+        client.global.set("job_id", response.body);
+    });
+%}
+
+###
+
+GET http://localhost:8080/jobs/{{job_id}}
+
+###
+
+POST http://localhost:8080/jobs/{{job_id}}/active
+
+###
+
+POST http://localhost:8080/jobs/{{job_id}}/disable
