@@ -3,7 +3,7 @@ using Bootcamp.Api.Models.Responses;
 using YandexFoundationModels.ApiClient;
 using YandexFoundationModels.ApiClient.Dto;
 
-namespace Bootcamp.Api;
+namespace Bootcamp.Api.Services;
 
 public interface IMlService
 {

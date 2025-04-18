@@ -3,9 +3,8 @@ using System.Security.Claims;
 using System.Text;
 using Bootcamp.Api.Models.Db;
 using Microsoft.IdentityModel.Tokens;
-using YandexFoundationModels.ApiClient.Dto;
 
-namespace Bootcamp.Api;
+namespace Bootcamp.Api.Services;
 
 public interface IJwtService
 {

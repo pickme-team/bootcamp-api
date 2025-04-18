@@ -5,6 +5,7 @@ using Bootcamp.Api;
 using Bootcamp.Api.Models.Db;
 using Bootcamp.Api.Models.Requests;
 using Bootcamp.Api.Models.Responses;
+using Bootcamp.Api.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.Data;
@@ -26,6 +27,7 @@ builder.Services.AddDbContext<BootcampContext>(o => o.UseInMemoryDatabase("Bootc
 builder.Services.AddSingleton<IJwtService, JwtService>();
 builder.Services.AddSingleton<PasswordHasher<string>>();
 builder.Services.AddScoped<IMlService, MlService>();
+builder.Services.AddScoped<IModerationService, ModerationService>();
 
 builder.Services.AddExceptionHandler<ExceptionFilter>();
 
@@ -41,7 +43,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidIssuer = builder.Configuration["Jwt:Issuer"],
             ValidAudience = builder.Configuration["Jwt:Audience"],
             IssuerSigningKey = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
+                Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!))
         };
     });
 
@@ -65,10 +67,7 @@ app.UseAuthorization();
 app.MapGet("/ping", () => "pong")
     .WithName("Ping");
 
-app.MapPost("/generate-text", async (GenerateTextRequest request, IMlService mlService) 
-        => await mlService.GenerateText(request))
-    .WithName("GenerateText");
-
+#region Auth Endpoints
 app.MapPost("/login", (LoginRequest request, BootcampContext db, IJwtService jwtService, PasswordHasher<string> hasher) =>
 {
     var user = db.Users.FirstOrDefault(u => 
@@ -100,7 +99,9 @@ app.MapPost("/register", async (RegisterRequest request, BootcampContext db, IJw
 
     return Results.Ok(new AuthResponse(jwtService.GenerateToken(user)));
 });
+#endregion
 
+#region User Profile
 app.MapGet("/users/me", async (HttpContext context, BootcampContext db) =>
 {
     var id = context.User.Id();
@@ -108,5 +109,24 @@ app.MapGet("/users/me", async (HttpContext context, BootcampContext db) =>
 
     return user == null ? Results.NotFound() : Results.Ok(new GetUserResponse(user.FirstName, user.LastName, user.Email));
 }).RequireAuthorization();
+#endregion
+
+#region ML Block
+app.MapPost("/generate-text", async (GenerateTextRequest request, IMlService mlService) 
+        => await mlService.GenerateText(request))
+    .WithName("GenerateText");
+
+app.MapGet("/jobs/{id:Guid}/moderate", async (HttpContext context, IModerationService moderator, Guid id) =>
+{
+    var isProfanity = await moderator.Moderate(id);
+    return Results.Ok(new { isProfanity = isProfanity });
+});
+#endregion
+
+#region Jobs
+
+app.MapPost("jobs/create", () => { return Results.Ok(); });
+
+#endregion
 
 app.Run();
