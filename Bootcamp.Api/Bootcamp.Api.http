@@ -6,4 +6,54 @@ Accept: application/json
   "prompt": "Представь ты помощник студента, помоги му с вопросом. Вопрос: Как добраться из кампуса из столовой? (ты знаешь карту или сам её придумай)",
   "temperature": 0.9
 }
+
 ###
+
+POST http://localhost:8080/register
+Content-Type: application/json
+Accept: application/json
+
+{
+  "firstName": "Yaroslav",
+  "lastName": "Rofl",
+  "email": "rofl@rofl.rofl",
+  "password": "abCD123!"
+}
+
+> {%
+    client.test("Register successful", function() {
+        client.assert(response.status === 200, "Response status is not 200");
+        client.log("Token: " + response.body.token);
+        client.global.set("auth_token", response.body.token);
+    });
+%}
+
+###
+
+POST http://localhost:8080/login
+Content-Type: application/json
+Accept: application/json
+
+{
+  "email": "rofl@rofl.rofl",
+  "password": "abCD123!"
+}
+
+> {%
+    client.test("Login successful", function() {
+        client.assert(response.status === 200, "Response status is not 200");
+        client.global.set("auth_token", response.body.token);
+    });
+%}
+
+###
+
+GET http://localhost:8080/users/me
+Authorization: Bearer {{auth_token}}
+
+> {%
+    client.test("Profile fetched", function() {
+        client.assert(response.status === 200, "Failed to fetch profile");
+        client.log("User: " + JSON.stringify(response.body));
+    });
+%}

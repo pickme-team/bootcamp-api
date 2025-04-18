@@ -1,19 +1,26 @@
+using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 
 namespace Bootcamp.Api;
 
-public class ExceptionFilter : IExceptionFilter
+public class ExceptionFilter : IExceptionHandler
 {
-    public void OnException(ExceptionContext context)
+    public async ValueTask<bool> TryHandleAsync(HttpContext context, Exception exception, CancellationToken cancellationToken)
     {
-        context.ExceptionHandled = true;
-
-        switch (context.Exception)
+        switch (exception)
         {
             case MlServiceException serviceException:
-            {
-                contetext
-            }
+                context.Response.StatusCode = 418;
+                await context.Response.WriteAsJsonAsync(new { message = serviceException.Message}, cancellationToken: cancellationToken);
+                break;
+            
+            default:
+                context.Response.StatusCode = 500;
+                await context.Response.WriteAsJsonAsync(new { message = exception.Message }, cancellationToken: cancellationToken);
+                break;
         }
+        
+        return true;
     }
 }

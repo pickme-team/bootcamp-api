@@ -1,0 +1,10 @@
+﻿services:
+  bootcamp.api:
+    image: bootcamp.api
+    build:
+      context: .
+      dockerfile: Bootcamp.Api/Dockerfile
+    env_file:
+      - Bootcamp.Api/.env
+    ports:
+      - "8080:8080"
