@@ -32,7 +32,7 @@ public class MlService(IConfiguration config) : IMlService
             IOperationApiClient operationApiClient = ApiClientsFactory.CreateOperationApiClient(_apiKey);
             GetOperationResponse response = await llmApiClient.CompletionAsync(completionRequest);
             string operationId = response.Id;
-            int counter = 100;
+            int counter = 1000;
             while (!response.Done)
             {
                 if (counter-- < 0) throw new TimeoutException("Operation timed out");
