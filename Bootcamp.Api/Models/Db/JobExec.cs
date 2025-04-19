@@ -29,7 +29,6 @@ public class JobExec
         return $"""
                Описание работы: {Job};
                Время выполнения: {EndTime - StartTime};
-               Статус: {Enum.Format(typeof(JobStatusService), Status, "G")};
                """;
     }
 }

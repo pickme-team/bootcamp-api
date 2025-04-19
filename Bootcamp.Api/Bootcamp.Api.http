@@ -188,5 +188,5 @@ PUT http://localhost:8080/jobs/{{job_id}}/complete
 Content-Type: application/json
 
 {
-  "isSuccess": true
+  "isSuccess": false
 }
