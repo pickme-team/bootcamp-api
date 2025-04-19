@@ -16,6 +16,8 @@ public class JobStatusService(BootcampContext db) : IJobStatusService
     public async Task<List<JobExec>> GetJobsForUser(User user, JobExecStatus status)
     {
         var jobs = await db.JobExecs.Where(je => je.ExecutorId == user.Id && je.Status == status)
+            .Include(je => je.Executor)
+            .Include(je => je.Job)
             .ToListAsync();
 
         return jobs;
@@ -46,7 +48,10 @@ public class JobStatusService(BootcampContext db) : IJobStatusService
 
     public async Task<JobExec?> EndJobExec(Guid jobId, CompleteJobRequest completeJobRequest)
     {
-        var jobExecTask = db.JobExecs.AsTracking().FirstOrDefaultAsync(je => je.JobId == jobId);
+        var jobExecTask = db.JobExecs.AsTracking()
+            .Include(je => je.Executor)
+            .Include(je => je.Job)
+            .FirstOrDefaultAsync(je => je.JobId == jobId);
         
         var jobExec = await jobExecTask;
         if (jobExec != null)

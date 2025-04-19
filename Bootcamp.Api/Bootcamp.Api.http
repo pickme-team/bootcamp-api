@@ -177,3 +177,16 @@ Authorization: Bearer {{auth_token}}
 
 POST http://localhost:8080/jobs/{{job_id}}/take
 Authorization: Bearer {{auth_token}}
+
+###
+
+PUT http://localhost:8080/jobs/{{job_id}}/confirm
+
+###
+
+PUT http://localhost:8080/jobs/{{job_id}}/complete
+Content-Type: application/json
+
+{
+  "isSuccess": true
+}

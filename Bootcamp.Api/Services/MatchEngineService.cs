@@ -20,11 +20,15 @@ public class MatchEngineService(IMlService service, BootcampContext db) : IMatch
         var latestSuccessJobs = await db.JobExecs
             .Where(je => je.ExecutorId == user.Id && je.Status == JobExecStatus.Completed)
             .Take(2)
+            .Include(je => je.Executor)
+            .Include(je => je.Job)
             .ToListAsync();
         
         var latestFailedJobs = await db.JobExecs
             .Where(je => je.ExecutorId == user.Id && je.Status == JobExecStatus.Failed)
             .Take(2)
+            .Include(je => je.Executor)
+            .Include(je => je.Job)
             .ToListAsync();
 
         var successJobs = "Успешно выполнены: " + string.Join(";\n", latestSuccessJobs);
