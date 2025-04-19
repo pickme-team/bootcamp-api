@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Npgsql;
 using LoginRequest = Bootcamp.Api.Models.Requests.LoginRequest;
 using RegisterRequest = Bootcamp.Api.Models.Requests.RegisterRequest;
 
@@ -24,7 +25,15 @@ builder.Services.AddOpenApi();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddDbContext<BootcampContext>(o => o.UseInMemoryDatabase("Bootcamp"));
+var connectionString = new NpgsqlConnectionStringBuilder()
+{
+    Host = "postgres",
+    Port = 5432,
+    Database = builder.Configuration["POSTGRES_DB"],
+    Username = builder.Configuration["POSTGRES_USER"],
+    Password = builder.Configuration["POSTGRES_PASSWORD"]
+}.ConnectionString;
+builder.Services.AddDbContext<BootcampContext>(o => o.UseNpgsql(connectionString));
 
 builder.Services.AddSingleton<IJwtService, JwtService>();
 builder.Services.AddSingleton<PasswordHasher<string>>();
@@ -304,5 +313,11 @@ app.MapPost("jobs/{id:Guid}/take", async (Guid id, BootcampContext db, IJobStatu
 }).RequireAuthorization();
 
 #endregion
+
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<BootcampContext>();
+    db.Database.Migrate();
+}
 
 app.Run();

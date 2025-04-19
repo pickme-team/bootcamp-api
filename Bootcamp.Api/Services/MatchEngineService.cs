@@ -32,7 +32,7 @@ public class MatchEngineService(IMlService service, BootcampContext db) : IMatch
             .ToListAsync();
 
         var successJobs = "Успешно выполнены: " + string.Join(";\n", latestSuccessJobs);
-        var failedJobs = "Провалены: " + string.Join(";\n", latestFailedJobs);
+        var failedJobs = "Провалены (человек не разбирается в этих темах): " + string.Join(";\n", latestFailedJobs);
 
         var jobs = allJobs.AsParallel()
             .Where(j =>

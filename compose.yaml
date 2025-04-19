@@ -6,5 +6,25 @@
       dockerfile: Bootcamp.Api/Dockerfile
     env_file:
       - Bootcamp.Api/.env
+    depends_on:
+        postgres:
+          condition: service_healthy
     ports:
       - "8080:8080"
+
+  postgres:
+    image: postgres:latest
+    env_file:
+      - Bootcamp.Api/.env
+    ports:
+      - "6666:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U myuser -d Bootcamp" ]
+      interval: 1s
+      timeout: 10s
+      retries: 5
+      
+volumes:
+  postgres_data:
