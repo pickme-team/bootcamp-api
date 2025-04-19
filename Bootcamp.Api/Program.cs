@@ -185,6 +185,12 @@ app.MapGet("/users/me/feed", async (IMatchEngineService matchEngine, BootcampCon
     
     return user == null ? Results.NotFound() : Results.Ok(await matchEngine.MatchJobsForUser(user));
 }).RequireAuthorization();
+
+app.MapGet("/users/me/feed/all", async (BootcampContext db) =>
+{
+    var jobs = await db.Jobs.ToListAsync();
+    return Results.Ok(jobs);
+});
 #endregion
 
 #region Jobs

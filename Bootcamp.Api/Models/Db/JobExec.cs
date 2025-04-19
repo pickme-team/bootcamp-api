@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Bootcamp.Api.Services;
 
 namespace Bootcamp.Api.Models.Db;
 
@@ -22,4 +23,13 @@ public class JobExec
     public JobExecStatus Status { get; set; }
     public DateTime StartTime { get; set; }
     public DateTime? EndTime { get; set; }
+
+    public override string ToString()
+    {
+        return $"""
+               Описание работы: {Job};
+               Время выполнения: {EndTime - StartTime};
+               Статус: {Enum.Format(typeof(JobStatusService), Status, "G")};
+               """;
+    }
 }
