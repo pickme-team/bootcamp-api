@@ -73,7 +73,6 @@ Authorization: Bearer {{auth_token}}
     "Кодер на C# 10 лет", "Сеньёр девелопер", "3 курс МФТИ"
 ]
 
-
 ###
 
 POST http://localhost:8080/jobs/create
@@ -188,5 +187,5 @@ PUT http://localhost:8080/jobs/{{job_id}}/complete
 Content-Type: application/json
 
 {
-  "isSuccess": false
+  "isSuccess": true
 }
