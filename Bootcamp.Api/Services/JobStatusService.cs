@@ -11,7 +11,7 @@ public interface IJobStatusService
     Task<JobExec?> EndJobExec(Guid jobId, CompleteJobRequest completeJobRequest);
 }
 
-public class JobStatusService(BootcampContext db) : IJobStatusService, IJobStatusService
+public class JobStatusService(BootcampContext db) : IJobStatusService
 {
     public async Task<List<JobExec>> GetJobsForUser(User user, JobExecStatus status)
     {
