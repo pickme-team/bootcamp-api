@@ -142,7 +142,7 @@ app.MapGet("users/me/jobs", async (HttpContext context, BootcampContext db) =>
     
     var jobExecs = await db.JobExecs.Where(j => j.ExecutorId == userId).ToListAsync();
     return Results.Ok(jobExecs);
-});
+}).RequireAuthorization();
 
 app.MapPost("users/me/jobs/{id:Guid}/cancel",
 async (Guid jobId, BootcampContext db, JobStatusService jobService, HttpContext context) =>
@@ -163,7 +163,7 @@ async (Guid jobId, BootcampContext db, JobStatusService jobService, HttpContext 
     await db.SaveChangesAsync();
 
     return Results.Ok(new {jobExec});
-});
+}).RequireAuthorization();
 
 #endregion
 

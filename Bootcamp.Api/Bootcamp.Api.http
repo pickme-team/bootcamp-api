@@ -167,3 +167,8 @@ POST http://localhost:8080/jobs/{{job_id}}/active
 ###
 
 POST http://localhost:8080/jobs/{{job_id}}/disable
+
+###
+
+GET http://localhost:8080/users/me/jobs
+Authorization: {{auth_token}}
