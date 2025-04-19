@@ -31,6 +31,7 @@ builder.Services.AddSingleton<PasswordHasher<string>>();
 builder.Services.AddScoped<IMlService, MlService>();
 builder.Services.AddScoped<IModerationService, ModerationService>();
 builder.Services.AddScoped<IMatchEngineService, MatchEngineService>();
+builder.Services.AddScoped<IJobStatusService, JobStatusService>();
 
 builder.Services.AddExceptionHandler<ExceptionFilter>();
 
@@ -130,6 +131,40 @@ app.MapPut("/users/me/update-skills", async (List<string> skills, BootcampContex
     await db.SaveChangesAsync();
     return Results.Ok(new GetUserResponse(user.FirstName, user.LastName, user.Email, user.Skills));
 }).RequireAuthorization();
+
+app.MapGet("users/me/jobs", async (HttpContext context, BootcampContext db) =>
+{
+    var userId = context.User.Id();
+    var user = await db.Users.FindAsync(userId);
+
+    if (user == null)
+        return Results.NotFound();
+    
+    var jobExecs = await db.JobExecs.Where(j => j.ExecutorId == userId).ToListAsync();
+    return Results.Ok(jobExecs);
+});
+
+app.MapPost("users/me/jobs/{id:Guid}/cancel",
+async (Guid jobId, BootcampContext db, JobStatusService jobService, HttpContext context) =>
+{
+    var userId = context.User.Id();
+    var user = await db.Users.FindAsync(userId);
+
+    if (user == null)
+        return Results.NotFound();
+
+    var jobExec = await db.JobExecs.FindAsync(jobId, userId);
+
+    if (jobExec == null)
+        return Results.Forbid();
+
+    jobExec.Status = JobExecStatus.Canceled;
+    jobExec.EndTime = DateTime.UtcNow;
+    await db.SaveChangesAsync();
+
+    return Results.Ok(new {jobExec});
+});
+
 #endregion
 
 #region ML Block
@@ -174,6 +209,25 @@ app.MapPost("jobs/create", async (CreateJobRequest createJob, BootcampContext db
     return Results.Ok(job.Id);
 });
 
+app.MapDelete("jobs/{id:Guid}/delete", async (Guid jobId, BootcampContext db) =>
+{
+    var job = await db.Jobs.FindAsync(jobId);
+    if (job == null)
+        return Results.NotFound();
+    
+    var jobExecTask = db.JobExecs.AsTracking().FirstOrDefaultAsync(je => je.JobId == jobId);
+
+    db.Jobs.Remove(job);
+    var jobExec = await jobExecTask;
+    
+    if (jobExec != null)
+        jobExec.Status = JobExecStatus.Canceled;
+    
+    await db.SaveChangesAsync();
+    
+    return Results.Ok();
+});
+
 app.MapGet("jobs/{id:Guid}", async (Guid id, BootcampContext db) =>
 {
     var job = await db.Jobs.FirstOrDefaultAsync(j => j.Id == id);
@@ -203,6 +257,23 @@ app.MapPost("jobs/{id:Guid}/disable", async (Guid id, BootcampContext db) =>
     await db.SaveChangesAsync();
     return Results.Ok(job);
 });
+
+app.MapPost("jobs/{id:Guid}/take", async (Guid jobId, BootcampContext db, JobStatusService jobService, HttpContext context) =>
+{
+    var userId = context.User.Id();
+    var user = await db.Users.FindAsync(userId);
+    
+    if (user == null)
+        return Results.NotFound();
+    
+    var job = await db.Jobs.FindAsync(jobId);
+    
+    if (job == null)
+        return Results.NotFound();
+    
+    var taken = await jobService.TakeJob(user, job);
+    return Results.Ok(new {taken});
+}).RequireAuthorization();
 
 #endregion
 

@@ -14,7 +14,7 @@ public class MatchEngineService(IMlService service, BootcampContext db) : IMatch
     
     public async Task<List<Job>> MatchJobsForUser(User user)
     {
-        var allJobs = await db.Jobs.ToListAsync();
+        var allJobs = await db.Jobs.Where(j => j.IsActive).ToListAsync();
         
         var jobs = allJobs.AsParallel()
             .Where(j =>
