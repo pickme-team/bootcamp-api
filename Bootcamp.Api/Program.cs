@@ -219,9 +219,12 @@ app.MapDelete("jobs/{id:Guid}/delete", async (Guid jobId, BootcampContext db) =>
 
     db.Jobs.Remove(job);
     var jobExec = await jobExecTask;
-    
+
     if (jobExec != null)
+    {
         jobExec.Status = JobExecStatus.Canceled;
+        jobExec.EndTime = DateTime.UtcNow;     
+    }
     
     await db.SaveChangesAsync();
     
@@ -258,7 +261,26 @@ app.MapPost("jobs/{id:Guid}/disable", async (Guid id, BootcampContext db) =>
     return Results.Ok(job);
 });
 
-app.MapPost("jobs/{id:Guid}/take", async (Guid jobId, BootcampContext db, JobStatusService jobService, HttpContext context) =>
+app.MapPut("jobs/{id:Guid}/confirm", async (Guid id, BootcampContext db) =>
+{
+    var job = await db.Jobs.FindAsync(id);
+    
+    if (job == null)
+        return Results.NotFound();
+    
+    job.IsActive = false;
+    await db.SaveChangesAsync();
+    return Results.Ok(job);
+});
+
+app.MapPut("jobs/{id:Guid}/complete", async (CompleteJobRequest request, Guid id, BootcampContext db, IJobStatusService jobService) =>
+{
+    var jobExec = await jobService.EndJobExec(id, request);
+    
+    return jobExec == null ? Results.NotFound() : Results.Ok(jobExec);
+});
+
+app.MapPost("jobs/{id:Guid}/take", async (Guid jobId, BootcampContext db, IJobStatusService jobService, HttpContext context) =>
 {
     var userId = context.User.Id();
     var user = await db.Users.FindAsync(userId);

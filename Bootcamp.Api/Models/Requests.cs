@@ -16,3 +16,5 @@ public record CreateJobRequest(
     JobType jobType,
     float salary,
     string salaryDescription);
+    
+public record CompleteJobRequest(bool isSuccess);

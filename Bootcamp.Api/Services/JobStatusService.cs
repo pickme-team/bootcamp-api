@@ -1,4 +1,5 @@
 using Bootcamp.Api.Models.Db;
+using Bootcamp.Api.Models.Requests;
 using Microsoft.EntityFrameworkCore;
 
 namespace Bootcamp.Api.Services;
@@ -7,9 +8,10 @@ public interface IJobStatusService
 {
     Task<List<JobExec>> GetJobsForUser(User user, JobExecStatus status);
     Task<bool> TakeJob(User user, Job jobId);
+    Task<JobExec?> EndJobExec(Guid jobId, CompleteJobRequest completeJobRequest);
 }
 
-public class JobStatusService(BootcampContext db) : IJobStatusService
+public class JobStatusService(BootcampContext db) : IJobStatusService, IJobStatusService
 {
     public async Task<List<JobExec>> GetJobsForUser(User user, JobExecStatus status)
     {
@@ -40,5 +42,21 @@ public class JobStatusService(BootcampContext db) : IJobStatusService
         {
             return false;
         }
+    }
+
+    public async Task<JobExec?> EndJobExec(Guid jobId, CompleteJobRequest completeJobRequest)
+    {
+        var jobExecTask = db.JobExecs.AsTracking().FirstOrDefaultAsync(je => je.JobId == jobId);
+        
+        var jobExec = await jobExecTask;
+        if (jobExec != null)
+        {
+            jobExec.Status = completeJobRequest.isSuccess ? JobExecStatus.Completed : JobExecStatus.Failed;
+            jobExec.EndTime = DateTime.UtcNow;
+        }
+        
+        await db.SaveChangesAsync();
+
+        return jobExec;
     }
 }

@@ -21,5 +21,5 @@ public class JobExec
     public User Executor { get; set; } = null!;
     public JobExecStatus Status { get; set; }
     public DateTime StartTime { get; set; }
-    public DateTime EndTime { get; set; }
+    public DateTime? EndTime { get; set; }
 }
