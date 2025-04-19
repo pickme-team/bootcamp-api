@@ -145,7 +145,7 @@ app.MapGet("users/me/jobs", async (HttpContext context, BootcampContext db) =>
 }).RequireAuthorization();
 
 app.MapPost("users/me/jobs/{id:Guid}/cancel",
-async (Guid jobId, BootcampContext db, JobStatusService jobService, HttpContext context) =>
+async (Guid id, BootcampContext db, JobStatusService jobService, HttpContext context) =>
 {
     var userId = context.User.Id();
     var user = await db.Users.FindAsync(userId);
@@ -153,7 +153,7 @@ async (Guid jobId, BootcampContext db, JobStatusService jobService, HttpContext 
     if (user == null)
         return Results.NotFound();
 
-    var jobExec = await db.JobExecs.FindAsync(jobId, userId);
+    var jobExec = await db.JobExecs.FindAsync(id, userId);
 
     if (jobExec == null)
         return Results.Forbid();
@@ -215,13 +215,13 @@ app.MapPost("jobs/create", async (CreateJobRequest createJob, BootcampContext db
     return Results.Ok(job.Id);
 });
 
-app.MapDelete("jobs/{id:Guid}/delete", async (Guid jobId, BootcampContext db) =>
+app.MapDelete("jobs/{id:Guid}/delete", async (Guid id, BootcampContext db) =>
 {
-    var job = await db.Jobs.FindAsync(jobId);
+    var job = await db.Jobs.FindAsync(id);
     if (job == null)
         return Results.NotFound();
     
-    var jobExecTask = db.JobExecs.AsTracking().FirstOrDefaultAsync(je => je.JobId == jobId);
+    var jobExecTask = db.JobExecs.AsTracking().FirstOrDefaultAsync(je => je.JobId == id);
 
     db.Jobs.Remove(job);
     var jobExec = await jobExecTask;
@@ -286,7 +286,7 @@ app.MapPut("jobs/{id:Guid}/complete", async (CompleteJobRequest request, Guid id
     return jobExec == null ? Results.NotFound() : Results.Ok(jobExec);
 });
 
-app.MapPost("jobs/{id:Guid}/take", async (Guid jobId, BootcampContext db, IJobStatusService jobService, HttpContext context) =>
+app.MapPost("jobs/{id:Guid}/take", async (Guid id, BootcampContext db, IJobStatusService jobService, HttpContext context) =>
 {
     var userId = context.User.Id();
     var user = await db.Users.FindAsync(userId);
@@ -294,7 +294,7 @@ app.MapPost("jobs/{id:Guid}/take", async (Guid jobId, BootcampContext db, IJobSt
     if (user == null)
         return Results.NotFound();
     
-    var job = await db.Jobs.FindAsync(jobId);
+    var job = await db.Jobs.FindAsync(id);
     
     if (job == null)
         return Results.NotFound();
